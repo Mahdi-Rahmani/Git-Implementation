@@ -377,6 +377,129 @@ public class Client {
         }
         return "please try again. something is wrong!!";
     }
+	public void updateLastModif(){
+
+        long latestModified = 0;
+        File directory = new File("./somefiles/files" );
+        File[] files = directory.listFiles();
+        for(File file : files) {
+            if (latestModified < file.lastModified()) {
+                latestModified = file.lastModified();
+            }
+        }
+        System.out.println(latestModified);
+        try {
+            FileWriter fw = new FileWriter("./somefiles/lastmodified.txt");
+            fw.write(latestModified+"");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * we check if the committed files are changed or not
+     * @return the status
+     */
+    public String isChanged(){
+        File file = new File("./somefiles/lastmodified.txt");
+        if (!file.exists())
+            return "these files never committed";
+        else {
+            long latestModified = 0;
+            File directory = new File("./somefiles/files" );
+            File[] files = directory.listFiles();
+            for(File file1 : files) {
+                if (latestModified < file1.lastModified()) {
+                    latestModified = file1.lastModified();
+                }
+            }
+            String nowLastModif = latestModified + "";
+
+            String commitLastModif = "";
+            try {
+                FileReader fileReader = new FileReader("./somefiles/lastmodified.txt");
+                Scanner scanner = new Scanner(fileReader);
+                while (scanner.hasNext()) {
+                    commitLastModif = scanner.nextLine();
+                }
+                fileReader.close();
+                scanner.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println(nowLastModif);
+            System.out.println(commitLastModif);
+            if (nowLastModif.equals(commitLastModif))
+                return "your files arent changed";
+            else
+                return "your files are changed. please first commit them.";
+        }
+
+    }
+    /**
+     * we should hold the commits of client inside his system too.
+     * this method handle this problem and holds the commit of user in clientData/<user>/repository path
+     * @param message the message of commit
+     * @param destinationAddress the address of destination
+     * @param fileName the file name that we want to commit
+     * @param sourceAddress the source address of file
+     * @param lastmodified the last modified (we get it from server for that repository)
+     */
+    public void commitInClient(String message ,String destinationAddress , String fileName ,String sourceAddress,String lastmodified){
+        String path = "./clientsData/"+username+"/repository";
+        String[] parts = destinationAddress.split("/");
+        for (String dirName : parts){
+            path += "/"+dirName;
+            File file = new File(path);
+            if (!file.exists()){
+                boolean bool = file.mkdir();
+                if (!bool)
+                    System.out.println("The directory cant be created");
+            }
+        }
+        // now we should transfer file in our repository inside clientsData directory
+        try {
+            BufferedInputStream bufIn = new BufferedInputStream(new FileInputStream(sourceAddress));
+            BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(path+"/"+fileName));
+            byte[] buff = new byte[1024 * 8];
+            int len;
+            while ((len = bufIn.read(buff)) != -1) {
+                bufOut.write(buff, 0, len);
+            }
+            bufOut.close();
+            bufIn.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // now we should save commits
+        String path2 ="./clientsData/"+username+"/repository/"+parts[0]+"/"+parts[1]+"/"+parts[2]+"/"+username+"commits.txt";
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(path2,true);
+            fw.write(message + "\n");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // now we should save last modified
+        String path3 ="./clientsData/"+username+"/repository/"+parts[0]+"/"+parts[1]+"/"+parts[2]+"/lastmodified.txt";
+        FileWriter fw2 = null;
+        try {
+            fw2 = new FileWriter(path3);
+            fw2.write(lastmodified );
+            fw2.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * this method synchronize one repository commits and files of user in clientsData and server database
+     * @param repOwner the name of repository owner
+     * @param repName the name of repository
+     * @return response
+     */
     public String getUsername() {
         return username;
     }
