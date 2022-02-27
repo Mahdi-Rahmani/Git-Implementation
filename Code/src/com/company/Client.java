@@ -208,6 +208,175 @@ public class Client {
 
     }
 
+	/**
+     * if the user wants to login we should use this method
+     * it checks the username and password of the user with server data base
+     * @return the status of server response
+     */
+    public String login()  {
+        out.println("login");
+        out.println(username);
+        out.println(password);
+        out.flush();
+        String status = "false";
+        try {
+            status = in.readLine();
+            if (status.equals("true"))
+            {
+                int max = Integer.parseInt(in.readLine());
+                for (int i = 0 ; i< max ;i++)
+                {
+                    String data = in.readLine();
+                    switch (i){
+                        case 1:
+                            email = data;
+                            break;
+                        case 2:
+                            bio = data;
+                            break;
+                    }
+                }
+                return status;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return status;
+    }
+
+    /**
+     * if the user wants to register we should use this method
+     * also when user register we should creat a folder for that user in clientsData folder
+     * @return status
+     */
+    public String register()  {
+        //makeConnection();
+        out.println("register");
+        out.println(username);
+        out.println(password);
+        out.flush();
+        System.out.println(password);
+        String status = "false";
+        try {
+            status = in.readLine();
+            if (status.equals("true")){
+                out.println(email);
+                out.println(bio);
+                out.flush();
+                File directory1 = new File("./clientsData/" + username );
+                File directory2 = new File("./clientsData/" + username + "/repository");
+                File directory3 = new File("./clientsData/" + username + "/downloads");
+                boolean bool1 = directory1.mkdir();
+                boolean bool2 = directory2.mkdir();
+                boolean bool3 = directory3.mkdir();
+
+                if (!(bool1&&bool2&&bool3))
+                    System.out.println("The client directory isn't created");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return status;
+    }
+
+    /**
+     * for handling the requests with 3 parts(opcode , op1 , op2)
+     * @param part0 the opcode
+     * @param part1 the op1
+     * @param part2 the op2
+     * @return response
+     */
+    public String handle3(String part0 , String part1 , String part2){
+        String response = "";
+        out.println(part0);
+        out.println(username);
+        out.println(part1);
+        out.println(part2);
+        out.flush();
+        try {
+            response = in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * handle the request of making directory
+     * @param repOwner the name of repository owner
+     * @param repName the name of ogf
+     * @param dirName the name of directory
+     * @return response
+     */
+    public String makeDir( String repOwner , String repName, String dirName){
+        String response = "";
+        out.println("makedir");
+        out.println(username);
+        out.println(repOwner);
+        out.println(repName);
+        out.println(dirName);
+        out.flush();
+        try {
+            response = in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * handle the commit_push request
+     * @param message the message of commit
+     * @param destinationAddress the destination address
+     * @param fileName the name of file
+     * @param sourceAddress the source address of file
+     * @return response
+     */
+    public String commit_push(String message ,String destinationAddress , String fileName ,String sourceAddress)  {
+        try {
+            String[] parts = destinationAddress.split("/");
+            String firstStatus = synchronizer(parts[0],parts[2]);
+            if (firstStatus.equals("access denied"))
+                return "your access is denied. you should be a contributor of this repo";
+            makeConnection();
+            out.println("commit&push");
+            out.println(username);
+            out.println(message);
+            out.println(destinationAddress);
+            out.println(fileName);
+            out.flush();
+            String status = in.readLine();
+            if (status.equals("true")) {
+                String lastModif = in.readLine();
+                System.out.println(sourceAddress);
+                BufferedInputStream bufIn = new BufferedInputStream(new FileInputStream(sourceAddress));
+                BufferedOutputStream bufOut = new BufferedOutputStream(socket.getOutputStream());
+                byte[] buff = new byte[1024 * 8];
+                int len;
+                while ((len = bufIn.read(buff)) != -1) {
+                    bufOut.write(buff, 0, len);
+                    bufOut.flush();
+                }
+                bufOut.close();
+                bufIn.close();
+                commitInClient(message, destinationAddress,fileName,sourceAddress,lastModif);
+                updateLastModif();
+                return "commit and push successfully";
+            }else
+                return "please try again. something is wrong!!";
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                socket.close();
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            out.close();
+        }
+        return "please try again. something is wrong!!";
+    }
     public String getUsername() {
         return username;
     }
