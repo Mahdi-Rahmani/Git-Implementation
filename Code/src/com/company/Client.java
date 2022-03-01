@@ -50,8 +50,10 @@ public class Client {
         address = "127.0.0.1";
         port = 1600;
         serverResponse = "false";
+        makeConnection();
     }
-	/**
+
+    /**
      * this method open a socket and create a connection for us
      * also creat BufferedReader in and PrintWriter out objects for transfer and receive data
      */
@@ -208,7 +210,7 @@ public class Client {
 
     }
 
-	/**
+    /**
      * if the user wants to login we should use this method
      * it checks the username and password of the user with server data base
      * @return the status of server response
@@ -377,7 +379,7 @@ public class Client {
         }
         return "please try again. something is wrong!!";
     }
-	public void updateLastModif(){
+    public void updateLastModif(){
 
         long latestModified = 0;
         File directory = new File("./somefiles/files" );
@@ -500,6 +502,195 @@ public class Client {
      * @param repName the name of repository
      * @return response
      */
+    public String synchronizer(String repOwner , String repName){
+        String response = "";
+        out.println("synchronize");
+        out.println(username);
+        out.println(repOwner);
+        out.println(repName);
+        out.flush();
+        try {
+            response = in.readLine();
+            if (!(response.equals("false")||response.equals("access denied"))){
+                String path ="./clientsData/"+username+"/repository/"+repOwner+"/repository/"+repName+"/lastmodified.txt";
+                File file = new File(path);
+                if (!file.exists()){
+                    File dir1 = new File( "./clientsData/"+username+"/repository/"+repOwner);
+                    File dir2 = new File( "./clientsData/"+username+"/repository/"+repOwner+"/repository");
+                    File dir3 = new File( "./clientsData/"+username+"/repository/"+repOwner+"/repository/"+repName);
+                    boolean isCreated1 = dir1.mkdir();
+                    boolean isCreated2 = dir2.mkdir();
+                    boolean isCreated3 = dir3.mkdir();
+                    if (!(isCreated1 || isCreated2 || isCreated3)) {
+                        System.out.println("these directories aren't created");
+                    }
+                    pull(repOwner+"/repository/"+repName,"./clientsData/"+username+"/repository/"+repOwner+"/repository/"+repName);
+                    return "the repository is updated and synced with server. ";
+                }else {
+                    String lastmodif = "";
+                    try {
+                        FileReader fileReader = new FileReader(path);
+                        Scanner scanner = new Scanner(fileReader);
+                        while (scanner.hasNext()) {
+                            lastmodif = scanner.nextLine();
+                        }
+                        fileReader.close();
+                        scanner.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (lastmodif.equals(response))
+                        return "the repository doesnt need to update";
+                    else {
+                        pull(repOwner+"/repository/"+repName,"./clientsData/"+username+"/repository/"+repOwner+"/repository");
+                        return "the repository is updated and synced with server. ";
+                    }
+                }
+            }else if(response.equals("false"))
+                return "the repository doesnt need to update";
+            else
+                return response;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     *
+     * @param repOwner
+     * @param repName
+     * @return
+     */
+    public String getCommits(String repOwner,String repName){
+        String response = "";
+        StringBuilder commits = new StringBuilder();
+        out.println("getcommits");
+        out.println(username);
+        out.println(repOwner);
+        out.println(repName);
+        out.flush();
+        try {
+            response = in.readLine();
+            if (!response.equals("false")){
+                for (int i =0 ; i<Integer.parseInt(response) ;i++){
+                    commits.append(in.readLine()).append("\n");
+                }
+                return String.valueOf(commits);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public String download(String destinationAddress,String downloadLocation ){
+        String response = "";
+        out.println("download");
+        out.println(username);
+        out.println(destinationAddress);
+        out.flush();
+        try {
+            response = in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (response.equals("true")) {
+            try {
+                BufferedInputStream bufIn = new BufferedInputStream(socket.getInputStream());
+                BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(downloadLocation));
+                byte[] buff = new byte[1024 * 8];
+                int len;
+                while ((len = bufIn.read(buff)) != -1) {
+                    bufOut.write(buff, 0, len);
+                }
+                bufOut.close();
+                bufIn.close();
+                return "Downloaded successfully in path:./clientsData/"+username+"/downloads";
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else
+            return "the path is incorrect or your access is denied ";
+
+        return response;
+    }
+    private int iteration = 0;
+    public String pull(String repAddress,String downloadLocation)
+    {
+        iteration++;
+        makeConnection();
+        String response = "";
+        out.println("pull");
+        out.println(username);
+        out.println(repAddress);
+        out.flush();
+        try {
+            response = in.readLine();
+            if (response.equals("true")){
+                if(iteration == 1) {
+                    int counter = 0;
+                    String[] downLocPart = downloadLocation.split("/");
+                    for (String part : downLocPart)
+                        if (part.equals("repository"))
+                            counter++;
+                    if (!(counter == 2))
+                        downloadLocation = createFirstDir(repAddress);
+                }
+                response = in.readLine();
+                //System.out.println(response);
+                ArrayList<String> filesList = new ArrayList<>();
+                for (int i =0 ; i<Integer.parseInt(response); i++)
+                {
+                    String fileName = in.readLine();
+                    filesList.add(fileName);
+                    System.out.println(fileName);
+                }
+                for (String name: filesList)
+                {
+                    System.out.println(downloadLocation);
+                    if (name.contains(".")){
+                        makeConnection();
+                        download(repAddress+"/"+name,downloadLocation+"/"+name);
+                    }else {
+                        File dir = new File( downloadLocation +"/"+name);
+                        boolean isCreated = dir.mkdir();
+                        if (!isCreated) {
+                            System.out.println("this repository isn`t created");
+                        }
+                        pull(repAddress+"/"+name,downloadLocation +"/"+name);
+                    }
+                }
+            }else
+                return "the path is incorrect or you dont have access";
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "successfully pulled";
+    }
+    public String createFirstDir(String repAddress){
+
+        String[] parts = repAddress.split("/");
+        File rep = new File( "./clientsData/"+username+"/downloads/" + parts[2]);
+        boolean isCreated = rep.mkdir();
+        if (!isCreated) {
+            System.out.println("this repository isn`t created");
+        }
+        return "./clientsData/"+username+"/downloads/" + parts[2];
+    }
+    public String[] foldersList(String path)
+    {
+        File directoryPath = new File(path);
+        //List of all files and directories
+        //String[] contents = directoryPath.list();
+        String[] directories = directoryPath.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+                return new File(current, name).isDirectory();
+            }
+        });
+        return directories;
+    }
     public String getUsername() {
         return username;
     }
