@@ -156,6 +156,47 @@ public class Login {
 
         return mainPanel;
     }
+	private class ButtonHandler implements ActionListener {
 
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Client client = new Client(userNameField.getText(),passwordField.getText());
+            String status;
+            if (e.getSource().equals(loginButton)) {
+                System.out.println("login Button");
+                status = client.login();
+                System.out.println(status);
+
+                if (status.equals("true"))
+                {
+                    JOptionPane.showMessageDialog(null, "login successfully", "Result", JOptionPane.INFORMATION_MESSAGE);
+                    frame.dispose();
+                    MainPage mainPage = new MainPage(client);
+
+                }
+                else
+                    JOptionPane.showMessageDialog(null, "Invalid Username or password", "Result", JOptionPane.ERROR_MESSAGE);
+
+
+            } else if (e.getSource().equals(registerButton)){
+                System.out.println("Register Button");
+                String[] email_bio = email_bio_getter();
+                client.setEmail(email_bio[0]);
+                client.setBio(email_bio[1]);
+                System.out.println(email_bio[1]);
+
+                status = client.register();
+                System.out.println(status);
+                if (status.equals("true"))
+                {
+                    JOptionPane.showMessageDialog(null, "register successfully", "Result", JOptionPane.INFORMATION_MESSAGE);
+                    frame.dispose();
+                    MainPage mainPage = new MainPage(client);
+                }
+                else
+                    JOptionPane.showMessageDialog(null, "This username is registered before ", "Result", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
 }
