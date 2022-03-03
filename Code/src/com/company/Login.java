@@ -156,7 +156,8 @@ public class Login {
 
         return mainPanel;
     }
-	private class ButtonHandler implements ActionListener {
+
+    private class ButtonHandler implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -199,4 +200,28 @@ public class Login {
         }
     }
 
+    public String[] email_bio_getter()
+    {
+        String[] answer = new String[2];
+        answer[0] = "";
+        answer[1] = "";
+        JTextField emailField = new JTextField(5);
+        JTextField bioField = new JTextField(5);
+
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("email:"));
+        myPanel.add(emailField);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Bio:"));
+        myPanel.add(bioField);
+
+        int result = JOptionPane.showConfirmDialog(null, myPanel,
+                "Please Enter your email and bio", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            answer[0] = emailField.getText();
+            answer[1] = bioField.getText();
+        }
+        return answer;
+
+    }
 }
