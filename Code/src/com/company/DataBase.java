@@ -168,4 +168,150 @@ public class DataBase {
             return "false";
         }
     }
+	
+	public void email_bio_setter(String username , String email , String bio){
+
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter("./Data/"+username+"/personality.txt",true);
+            fw.write(email + "\n");
+            fw.write(bio + "\n");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String makeRepository(String username,String repName , String status)
+    {
+        String path = "./Data/"+ username +"/repository";
+
+        if (isRepositoryExist(username, repName)) {
+            System.out.println("this name is used before");
+            return "false";
+        }
+
+        File rep = new File(path + "/" + repName);
+        boolean isCreated = rep.mkdir();
+        if (!isCreated) {
+            System.out.println("this repository isn`t created");
+            return "false";
+        }
+
+        try {
+            FileWriter fw = new FileWriter(path + "/" + repName + "/info.txt",true);
+            fw.write(status + "\n");
+            fw.write(username + "\n");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "true";
+    }
+
+    public String addContributor(String username , String contName , String repName){
+
+        //first we should check if the repository or contributor exist or not
+        String path = "./Data/"+ username +"/repository";
+
+
+        if (!(isUserExist(contName) && isRepositoryExist(username, repName)))
+        {
+            System.out.println("the contributor or repository isn`t exist ");
+            return "false";
+        }
+        //then we should check if the contributor is added later or not
+        FileReader fileReader = null;
+        try {
+            fileReader = new FileReader(path+ "/" + repName + "/info.txt");
+            Scanner scanner = new Scanner(fileReader);
+            int lineNumber = 0;
+            while (scanner.hasNext()) {
+                if(lineNumber == 0)
+                    scanner.nextLine();
+                else {
+                    String contributors = scanner.nextLine();
+                    if (contributors.equals(contName)) {
+                        System.out.println("this contributor added later");
+                        return "false";
+                    }
+                }
+                lineNumber ++;
+            }
+            fileReader.close();
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // now we can add contributor
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(path+ "/" + repName + "/info.txt",true);
+            fw.write(contName + "\n");
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "true";
+    }
+
+    public String makeDirectory(String username,String repOwner , String repName , String dirName ){
+        if (isUserExist(repOwner)&&isRepositoryExist(repOwner, repName)&&isContributor(username, repOwner, repName)){
+            File directory = new File("./Data/" + repOwner + "/repository/" + repName + "/"+ dirName);
+            //System.out.println("./Data/" + repOwner + "/repository/" + repName + "/"+ dirName);
+            boolean bool = directory.mkdir();
+            if (!bool)
+                return "false";
+            //System.out.println("miiiad");
+            return "true";
+        }
+        return "false";
+    }
+
+    public String usersList(){
+        String[] usersList = foldersList("./Data");
+        StringBuilder list = new StringBuilder();
+        for (String user : usersList) {
+            list.append(user).append("\n");
+        }
+        return String.valueOf(list);
+    }
+
+    public String repositoryList(String username , String ownerName){
+        // first we should check if the user exist
+        if(!isUserExist(ownerName))
+            return "the user doesn't exist";
+        String[] repList = foldersList("./Data/"+ownerName+"/repository");
+        StringBuilder list = new StringBuilder();
+        for (String rep : repList) {
+            // now we should check if the rep is private or not
+            FileReader fileReader = null;
+            try {
+                fileReader = new FileReader("./Data/"+ownerName+"/repository/"+rep+"/info.txt");
+                Scanner scanner = new Scanner(fileReader);
+                int lineNumber = 0;
+                while (scanner.hasNext()) {
+                    // if the rep is private we should check if the user is one of its contributor or not
+                    if(lineNumber == 0 && scanner.nextLine().equals("public")) {
+                        list.append(rep).append("\n");
+                        fileReader.close();
+                        scanner.close();
+                        break;
+                    }
+                    else {
+                        String contributors = scanner.nextLine();
+                        if (contributors.equals(username)) {
+                            list.append(rep).append("\n");
+                        }
+                    }
+                    lineNumber ++;
+                }
+                fileReader.close();
+                scanner.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return list.toString();
+    }
 }
