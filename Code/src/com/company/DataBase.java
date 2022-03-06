@@ -314,4 +314,66 @@ public class DataBase {
         }
         return list.toString();
     }
+	
+	public String removeContributor(String username ,String contName , String repName){
+        if(isUserExist(contName) && isRepositoryExist(username, repName)){
+            FileReader fileReader = null;
+            FileWriter fileWriter = null;
+            try {
+                fileReader = new FileReader("./Data/"+username+"/repository/"+repName+"/info.txt");
+                fileWriter = new FileWriter("./Data/" + username + "/repository/" + repName + "/temp.txt");
+                Scanner scanner = new Scanner(fileReader);
+                int lineNumber = 0;
+                while (scanner.hasNext()) {
+                    if(lineNumber == 0 ) {
+                        String privacy = scanner.nextLine();
+                        fileWriter.write(privacy+"\n");
+                    }
+                    else {
+                        String contributors = scanner.nextLine();
+                        if (!contributors.equals(contName))
+                            fileWriter.write(contributors+"\n");
+                    }
+                    lineNumber ++;
+                }
+                fileWriter.close();
+                fileReader.close();
+                scanner.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else
+            return "false";
+        copyFile(username, repName);
+        return "true";
+    }
+
+    public boolean isContributor(String username, String owner, String repName ){
+        FileReader fileReader = null;
+        try {
+            fileReader = new FileReader("./Data/"+owner+"/repository/"+repName+"/info.txt");
+            Scanner scanner = new Scanner(fileReader);
+            int lineNumber = 0;
+            while (scanner.hasNext()) {
+                // if the rep is private we should check if the user is one of its contributor or not
+                if(lineNumber == 0 ) {
+                    String privacy = scanner.nextLine();
+                }
+                else {
+                    String contributors = scanner.nextLine();
+                    if (contributors.equals(username)) {
+                        System.out.println("this user is one of the contributor of this repo");
+                        return true;
+                    }
+                }
+                lineNumber++;
+            }
+            fileReader.close();
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("this user isn`t one of the contributor of this repo");
+        return false;
+    }
 }
