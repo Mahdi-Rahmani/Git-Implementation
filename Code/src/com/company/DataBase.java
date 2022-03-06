@@ -376,4 +376,98 @@ public class DataBase {
         System.out.println("this user isn`t one of the contributor of this repo");
         return false;
     }
+	
+	public void copyFile(String username, String repName){
+        FileReader fileReader = null;
+        FileWriter fileWriter = null;
+        try {
+            fileReader = new FileReader("./Data/"+username+"/repository/"+repName+"/temp.txt");
+            fileWriter = new FileWriter("./Data/" + username + "/repository/" + repName + "/info.txt");
+            Scanner scanner = new Scanner(fileReader);
+            while (scanner.hasNext()) {
+                String data = scanner.nextLine();
+                System.out.println(data);
+                fileWriter.write(data+"\n");
+            }
+            fileWriter.close();
+            fileReader.close();
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File file = new File("./Data/" + username + "/repository/"+repName+"/temp.txt");
+        file.delete();
+    }
+
+    public String pull(String username,String owner,String repName){
+
+        StringBuilder response = new StringBuilder();
+        if (isUserExist(owner) && isRepositoryExist(owner, repName) && isContributor(username,owner,repName))
+        {
+
+            try {
+                FileReader fileReader = new FileReader("./Data/" + username + "/repository/" + repName + "/filesPath.txt");
+                Scanner scanner = new Scanner(fileReader);
+                while (scanner.hasNext()) {
+                    response.append(scanner.nextLine()).append(" ");
+                }
+                scanner.close();
+                fileReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return String.valueOf(response);
+        }else
+            System.out.println("The owner name or repository name is incorrect or you doesnt access to the repository");
+        return "false";
+    }
+
+    public String commit_push(String username , String message , String destAdd ){
+        // dest add = <user>/repository/<repName>/<dirName>  (we dont say the file name in dest add)
+        String myLast = "";
+        String[] addParts = destAdd.split("/");
+        String addressChecker = "./Data";
+        for (int i = 0 ; i< addParts.length-1 ; i++){
+            boolean flag = false;
+            addressChecker += "/"+addParts[i];
+            System.out.println(addressChecker);
+            String[] listFiles = foldersList(addressChecker);
+            for (String name : listFiles)
+            {
+                System.out.println(name);
+                if (name.equals(addParts[i+1])) {
+                    flag = true;
+                }
+            }
+            if (!flag)
+                return "false";
+            if(!isContributor(username, addParts[0],addParts[2]))
+                return "false";
+            if(i == addParts.length-2) {
+                FileWriter fileWriter = null;
+                try {
+                    fileWriter = new FileWriter("./Data/" + addParts[0] + "/repository/" + addParts[2] + "/"+username+"commits.txt",true);
+                    fileWriter.write(message+"\n");
+                    fileWriter.close();
+
+                    long latestModified = 0;
+                    File directory = new File("./Data/" + addParts[0] + "/repository/" + addParts[2] );
+                    File[] files = directory.listFiles();
+                    for(File file : files) {
+                        if (latestModified < file.lastModified()) {
+                            latestModified = file.lastModified();
+                        }
+                    }
+                    FileWriter fileWriter2 = new FileWriter("./Data/" + addParts[0] + "/repository/" + addParts[2] +"/lastmodified.txt");
+                    fileWriter2.write(latestModified+"");
+                    myLast += latestModified;
+                    fileWriter2.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return "true/"+myLast;
+            }
+        }
+        return "false";
+    }
 }
