@@ -65,7 +65,7 @@ public class DataBase {
         return false;
     }
 
-	/**
+    /**
      * this method checks is the the entry repository private or not
      * @param repOwner the name of owner of rep
      * @param repName the name of rep
@@ -168,8 +168,7 @@ public class DataBase {
             return "false";
         }
     }
-	
-	public void email_bio_setter(String username , String email , String bio){
+    public void email_bio_setter(String username , String email , String bio){
 
         FileWriter fw = null;
         try {
@@ -314,8 +313,37 @@ public class DataBase {
         }
         return list.toString();
     }
-	
-	public String removeContributor(String username ,String contName , String repName){
+
+    public String changeRepoPrivacy(String username ,String repName , String privacy){
+        if (!isRepositoryExist(username, repName) || !(privacy.equals("public") || privacy.equals("private")))
+            return "false";
+        try {
+            FileReader fileReader = new FileReader("./Data/" + username + "/repository/" + repName + "/info.txt");
+            FileWriter fileWriter = new FileWriter("./Data/" + username + "/repository/" + repName + "/temp.txt");
+            Scanner scanner = new Scanner(fileReader);
+            int lineNum = 0;
+            while (scanner.hasNext()) {
+                if (lineNum == 0) {
+                    String data = scanner.nextLine();
+                    fileWriter.write(privacy+"\n");
+                } else {
+                    String data = scanner.nextLine();
+                    fileWriter.write(data + "\n");
+                }
+                lineNum++;
+            }
+            fileWriter.close();
+            scanner.close();
+            fileReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "false";
+        }
+        copyFile(username, repName);
+        return "true";
+
+    }
+    public String removeContributor(String username ,String contName , String repName){
         if(isUserExist(contName) && isRepositoryExist(username, repName)){
             FileReader fileReader = null;
             FileWriter fileWriter = null;
@@ -376,8 +404,8 @@ public class DataBase {
         System.out.println("this user isn`t one of the contributor of this repo");
         return false;
     }
-	
-	public void copyFile(String username, String repName){
+
+    public void copyFile(String username, String repName){
         FileReader fileReader = null;
         FileWriter fileWriter = null;
         try {
@@ -469,5 +497,79 @@ public class DataBase {
             }
         }
         return "false";
+    }
+
+    public String getCommits(String username , String repOwner , String repName){
+        StringBuilder commits = new StringBuilder();
+        if (isUserExist(repOwner)&&isRepositoryExist(repOwner, repName)&&isContributor(username, repOwner, repName)){
+            String[] fileList = foldersList("./Data/"+repOwner+"/repository/"+repName);
+            try {
+                FileReader fileReader = new FileReader("./Data/" + repOwner + "/repository/" + repName + "/info.txt");
+                Scanner scanner = new Scanner(fileReader);
+                int lineNumber = 0;
+                while (scanner.hasNext()) {
+                    if(lineNumber == 0 ) {
+                        String privacy = scanner.nextLine();
+                    }
+                    else {
+                        String contributors = scanner.nextLine();
+                        for (String fileName : fileList){
+                            // if the contributor committed we should read his related file
+                            if (fileName.equals(contributors+"commits.txt"))
+                            {
+                                commits.append(contributors).append(":\n");
+                                try {
+                                    FileReader fileReader2 = new FileReader("./Data/" + repOwner + "/repository/" + repName +"/"+fileName);
+                                    System.out.println("./Data/" + repOwner + "/repository/" + repName +"/"+fileName);
+                                    Scanner scanner2 = new Scanner(fileReader2);
+                                    while (scanner2.hasNext()) {
+                                        String commitLine = scanner2.nextLine();
+                                        System.out.println(commitLine);
+                                        commits.append(commitLine).append("\n");
+                                    }
+                                    scanner2.close();
+                                    fileReader2.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                    lineNumber ++;
+                }
+                scanner.close();
+                fileReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return String.valueOf(commits);
+        }
+        else
+            return "false";
+    }
+
+    public String synchronize(String username,String repOwner,String repName){
+        if (isUserExist(repOwner)&&isRepositoryExist(repOwner, repName)&&isContributor(username, repOwner, repName)){
+            String path ="./Data/"+repOwner+"/repository/"+repName+"/lastmodified.txt";
+            File file = new File(path);
+            if (!file.exists()){
+                return "false";
+            }else {
+                String lastmodif = "";
+                try {
+                    FileReader fileReader = new FileReader(path);
+                    Scanner scanner = new Scanner(fileReader);
+                    while (scanner.hasNext()) {
+                        lastmodif = scanner.nextLine();
+                    }
+                    fileReader.close();
+                    scanner.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return lastmodif;
+            }
+        }else
+            return "access denied";
     }
 }
