@@ -65,4 +65,107 @@ public class DataBase {
         return false;
     }
 
+	/**
+     * this method checks is the the entry repository private or not
+     * @param repOwner the name of owner of rep
+     * @param repName the name of rep
+     * @return boolean
+     */
+    public boolean isRepositoryPrivate(String repOwner,String repName)
+    {
+        try {
+            FileReader fileReader = new FileReader("./Data/"+repOwner+"/repository/"+repName+"/info.txt");
+            Scanner scanner = new Scanner(fileReader);
+            while (scanner.hasNext()) {
+                String privacy = scanner.nextLine();
+                if( privacy.equals("private"))
+                    return true;
+                else
+                    return false;
+            }
+            fileReader.close();
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * this method is used for login purpose
+     * @param username the username
+     * @param password the password
+     * @return the list of objects in personality.txt if the user exists
+     */
+    public ArrayList<String> checkUser2(String username, String password)
+    {
+        ArrayList<String> personality = new ArrayList<>();
+
+        if (isUserExist(username)){
+            try {
+                FileReader fileReader = new FileReader("./Data/"+username+"/personality.txt");
+                Scanner scanner = new Scanner(fileReader);
+                int i = 0;
+                while (scanner.hasNextLine()) {
+                    String data = scanner.nextLine();
+                    if (data.equals(password) && i == 0) {
+                        personality.add("true");
+                        personality.add(data);
+                    }else{
+                        personality.add(data);
+                    }
+                    i++;
+                }
+                fileReader.close();
+                scanner.close();
+                personality.add(1,""+i);
+                return personality;
+            } catch (Exception e) {
+                System.out.println("Cant access Data ");
+                personality.add("false");
+                return personality;
+            }
+        }
+        personality.add("false");
+        return personality;
+    }
+
+    /**
+     * this method is used for register
+     * @param username username
+     * @param password password
+     * @return status
+     */
+    public String register(String username , String password)
+    {
+
+        if (isUserExist(username)) {
+            System.out.println("Tis username is used before");
+            return "false";
+        }
+
+        try {
+            File newUser = new File("./Data/" + username);
+            boolean status = newUser.mkdir();
+            if (!status) {
+                System.out.println("Cant create Folder for user");
+            }
+
+            FileWriter fw = new FileWriter("./Data/"+username+"/personality.txt");
+            fw.write(password + "\n");
+            fw.close();
+
+            File hisRepository = new File("./Data/" + username+ "/repository");
+            status = hisRepository.mkdir();
+            if (!status) {
+                System.out.println("Cant create repository Folder for user");
+            }
+
+            return "true";
+
+        } catch (Exception e) {
+            System.out.println("Cant read users Data !");
+            return "false";
+        }
+    }
 }
