@@ -53,4 +53,24 @@ public class MenuBar extends JMenuBar {
         //add(optionsMenu);
         add(helpMenu);
     }
+	/**
+     * Make the exitMenu for programme
+     */
+    private void makeExitMenu()
+    {
+        JMenuItem quit = new JMenuItem("Sign out");
+        quit.setFont(new Font("Arial", Font.PLAIN, 12));
+        quit.addActionListener(e -> {
+            int response = JOptionPane.showConfirmDialog(null, "Do you want to Exit?", "Confirm",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (response == JOptionPane.YES_OPTION) {
+                //System.exit(0);
+                frame.dispose();
+                Login login = new Login();
+            }
+        });
+
+
+        exitMenu.add(quit);
+    }
 }
