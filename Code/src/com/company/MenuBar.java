@@ -73,4 +73,15 @@ public class MenuBar extends JMenuBar {
 
         exitMenu.add(quit);
     }
+	/**
+     * the option menu
+     */
+    private void makeOptionsMenu()
+    {
+        JMenuItem pssWordChange = new JMenuItem("Changing password");
+        JMenuItem userChange = new JMenuItem("Changing userName");
+
+        pssWordChange.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK));
+        userChange.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+    }
 }
