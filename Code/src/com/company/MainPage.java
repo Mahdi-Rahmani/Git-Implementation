@@ -85,7 +85,8 @@ public class MainPage {
 
 
     }
-	public void userInfo(){
+
+    public void userInfo(){
 
         //The user image
         try {
@@ -126,7 +127,7 @@ public class MainPage {
         frame.add(bio);
 
     }
-	public void commandLineSettings(){
+    public void commandLineSettings(){
         commandLine = new JTextArea();
         commandLine.setLocation(50,400);
         commandLine.setSize(900,180);
@@ -167,6 +168,24 @@ public class MainPage {
             public void changedUpdate(DocumentEvent e) {
             }
         });
+    }
+
+    public void monitorSettings()
+    {
+        monitor = new JTextArea();
+        monitor.setLocation(300,20);
+        monitor.setSize(600,300);
+        Color color=new Color(255,0,0);
+        monitor.setForeground(color);
+        monitor.setOpaque(true);
+        monitor.setFont(new Font("Arial", Font.PLAIN, 16));
+        monitor.setText("Welcome to git");
+        monitor.setEditable(false);
+        //monitor.setEnabled(false);
+        monitor.setBorder(BorderFactory.createMatteBorder(5,5 , 5, 5,Color.black ));
+
+        frame.add(monitor);
+
     }
 
 }
