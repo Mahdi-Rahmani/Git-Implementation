@@ -85,5 +85,46 @@ public class MainPage {
 
 
     }
+	public void userInfo(){
+
+        //The user image
+        try {
+            image = ImageIO.read(new File("./images/user.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        picLabel = new JLabel(new ImageIcon(image));
+        picLabel.setSize(150, 120);
+        picLabel.setLocation(20,20);
+        Image imageJLFit = image.getScaledInstance(picLabel.getWidth(), picLabel.getHeight(), Image.SCALE_SMOOTH);
+        picLabel.setIcon(new ImageIcon(imageJLFit));
+
+        // The user name
+        name = new JLabel("Name:"+client.getUsername());
+        name.setLocation(20,120);
+        name.setSize(150,70);
+        name.setForeground(Color.WHITE);
+        name.setFont(new Font("Arial", Font.PLAIN, 15));
+
+        //the email
+        email = new JLabel("Email:"+client.getEmail());
+        email.setLocation(20,190);
+        email.setSize(150,70);
+        email.setForeground(Color.WHITE);
+        email.setFont(new Font("Arial", Font.PLAIN, 15));
+
+        //The bio
+        bio = new JLabel("Bio:"+client.getBio());
+        bio.setLocation(20,260);
+        bio.setSize(150,70);
+        bio.setForeground(Color.WHITE);
+        bio.setFont(new Font("Arial", Font.PLAIN, 15));
+
+        frame.add(picLabel);
+        frame.add(name);
+        frame.add(email);
+        frame.add(bio);
+
+    }
 
 }
