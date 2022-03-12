@@ -126,5 +126,47 @@ public class MainPage {
         frame.add(bio);
 
     }
+	public void commandLineSettings(){
+        commandLine = new JTextArea();
+        commandLine.setLocation(50,400);
+        commandLine.setSize(900,180);
+        commandLine.setFont(new Font("Arial", Font.PLAIN, 12));
+        commandLine.setEnabled(true);
+        commandLine.setBorder(BorderFactory.createMatteBorder(5,5 , 5, 5,Color.black ));
+        frame.add(commandLine);
+
+        commandLine.getDocument().addDocumentListener(new DocumentListener()
+        {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                pos += e.getLength();
+                if(commandLine.getText().charAt(pos) == '\n') {
+                    System.out.println(line);
+                    String response = client.requestHandler(line) + "\n";
+                    monitor.setText(response);
+                    line = "";
+                }else{
+                    line += commandLine.getText().charAt(pos);
+                }
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                pos -= e.getLength();
+                int i = 0;
+                String newline = "";
+                for (char ch : line.toCharArray()) {
+                    if (i < line.toCharArray().length-1)
+                        newline += ch;
+                    i++;
+                }
+                line = newline;
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
+    }
 
 }
