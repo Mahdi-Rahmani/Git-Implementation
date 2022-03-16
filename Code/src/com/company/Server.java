@@ -24,6 +24,8 @@ public class Server {
     private BufferedReader in;
     // The output message that server transmit
     private PrintWriter out;
+    // The DataBase that server uses
+    private DataBase dataBase;
 
     /**
      * this is the main method of this class
@@ -43,6 +45,7 @@ public class Server {
     public Server() throws IOException {
         port = 1600;
         server = new ServerSocket(port);
+        dataBase = new DataBase();
         run();
 
     }
@@ -60,10 +63,19 @@ public class Server {
             Socket socket = server.accept();
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            requestHandler(socket);
         }
     }
-	
-	public void requestHandler(Socket socket) throws IOException {
+
+    /**
+     * the request handler of server
+     * in run method we have a true while and always listen on a specific port
+     * if client creat a socket and transmit a request we should give that request
+     * to this method to handle it
+     * @param socket the socket
+     * @throws IOException exceptions
+     */
+    public void requestHandler(Socket socket) throws IOException {
         String username;
         String password;
         String status = "";
@@ -295,4 +307,5 @@ public class Server {
         }
         out.close();
     }
+
 }
