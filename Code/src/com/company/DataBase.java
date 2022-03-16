@@ -39,9 +39,10 @@ public class DataBase {
     public boolean isUserExist(String username){
         String[] usersList = foldersList("./Data");
         for (String user : usersList) {
-            if (user.equals(username))
+            if (user.equals(username)) {
+                System.out.println("the user exist");
                 return true;
-
+            }
         }
         return false;
     }
@@ -214,7 +215,7 @@ public class DataBase {
         String path = "./Data/"+ username +"/repository";
 
 
-        if (!(isUserExist(contName) && isRepositoryExist(username, repName)))
+        if (!isUserExist(contName) || !isRepositoryExist(username, repName))
         {
             System.out.println("the contributor or repository isn`t exist ");
             return "false";
